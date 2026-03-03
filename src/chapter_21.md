@@ -247,11 +247,11 @@ $$
 ```admonish pic id="onetimepadfig"
 ![onetimepadfig](./images/chapter21/onetimepad.png) 
 
-{{pic}}{fig:onetimepadtwo} 在**一次性密码本**加密方案中，我们使用密钥 $k\in \{0,1\}^n$ 将明文 $x\in \{0,1\}^n$ 加密为密文 $x \oplus k$，其中 $\oplus$ 表示按位异或运算。
+{{pic}}{fig:onetimepad} 在**一次性密码本**加密方案中，我们使用密钥 $k\in \{0,1\}^n$ 将明文 $x\in \{0,1\}^n$ 加密为密文 $x \oplus k$，其中 $\oplus$ 表示按位异或运算。
 ```
 
 ```admonish pause title="暂停一下"
-上述论证相当简单，但值得再读一遍。为了理解为什么一次性密码本是完美保密的，将其设想为我们在{{ref:fig:onetimepadtwo}}中所做的二分图是很有帮助的。（实际上，图21.8中的加密方案正是 $n=2$ 时的一次性密码本。）对于每个 $n$，一次性密码本加密方案对应于一个二分图，其"左侧"有 $2^n$ 个顶点，对应于 $\{0,1\}^n$ 中的明文；"右侧"有 $2^n$ 个顶点，对应于密文 $\{0,1\}^n$。对于每个 $x\in \{0,1\}^n$ 和 $k\in \{0,1\}^n$，我们将 $x$ 与顶点 $y=E_k(x)$ 用一条标记为 $k$ 的边连接起来。可以看出，这是一个完全二分图，其中左侧的每个顶点都连接到_所有_右侧的顶点。这尤其意味着，对于每个左侧顶点 $x$，通过随机选取 $k\in \{0,1\}^n$ 并沿着标记为 $k$ 的边走到 $x$ 的邻居而得到的密文分布，正是 $\{0,1\}^n$ 上的均匀分布。这确保了完美保密性条件。
+上述论证相当简单，但值得再读一遍。为了理解为什么一次性密码本是完美保密的，将其设想为我们在{{ref:fig:onetimepadtwo}}中所做的二分图是很有帮助的。（实际上，图21.8中的加密方案正是 $n=2$ 时的一次性密码本。）对于每个 $n$，一次性密码本加密方案对应于一个二分图，其"左侧"有 $2^n$ 个顶点，对应于 $\{0,1\}^n$ 中的明文；"右侧"有 $2^n$ 个顶点，对应于密文 $\{0,1\}^n$。对于每个 $x\in \{0,1\}^n$ 和 $k\in \{0,1\}^n$，我们将 $x$ 与顶点 $y=E_k(x)$ 用一条标记为 $k$ 的边连接起来。可以看出，这是一个完全二分图，其中左侧的每个顶点都连接到**所有**右侧的顶点。这尤其意味着，对于每个左侧顶点 $x$，通过随机选取 $k\in \{0,1\}^n$ 并沿着标记为 $k$ 的边走到 $x$ 的邻居而得到的密文分布，正是 $\{0,1\}^n$ 上的均匀分布。这确保了完美保密性条件。
 ```
 
 ## 长密钥的必要性
@@ -426,269 +426,152 @@ $$
 实践中两种最广泛使用的（私钥）加密方案是**流加密**和**分组加密**。（更令人困惑的是，分组加密总是在某种[操作模式](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation)下使用，而其中一些模式有效地将分组加密转换为流加密。）分组加密可以被认为是某种从 $\{0,1\}^n$ 到 $\{0,1\}^n$ 的“随机可逆映射”，并且可用于构造伪随机生成器，进而构造流加密，或使用其他操作模式直接加密数据。除了计算上的保密性之外，加密方案还有大量其他的安全概念和考虑因素。其中许多涉及处理诸如**选择明文**、**中间人**和**选择密文**攻击等场景，在这些场景中，敌手不仅仅是被动的窃听者，而是可以某种方式影响通信。虽然本章旨在让你初步了解密码学背后的思想，但在正确应用它以获得安全应用之前，还有更多东西需要了解，并且已经有很多人在这方面犯过错误。
 ```
 
-## Computational secrecy and $\mathbf{NP}$
+## 计算保密性与$\mathbf{NP}$
 
-We've also mentioned before that an efficient algorithm for $\mathbf{NP}$ could be used to break all cryptography.
-We now give an example of how this can be done:
+我们之前也提到过，一个能解决$\mathbf{NP}$问题的有效算法可以用来破解所有的密码学。现在我们给出一个例子来说明如何做到这一点：
 
-::: {.theorem title="Breaking encryption using $\mathbf{NP}$ algorithm" #breakingcryptowithnp}
-If $\mathbf{P}=\mathbf{NP}$ then there is no computationally secret encryption scheme with $L(n) > n$.
+```admonish quote title=""
+{{thmc}}{thm:breakingcryptowithnp}[使用$\mathbf{NP}$算法破解加密]
 
-Furthermore, for every valid encryption scheme $(E,D)$ with $L(n) > n+100$ there is a polynomial $p$ such that for every large enough $n$ there exist $x_0,x_1 \in \{0,1\}^{L(n)}$ and a $p(n)$-line NAND-CIRC program $EVE$ s.t.
+如果$\mathbf{P}=\mathbf{NP}$，那么不存在任何明文长度$L(n) > n$的计算保密的加密方案。
+
+此外，对于每一个有效的加密方案$(E,D)$且满足$L(n) > n+100$，存在一个多项式$p$，使得对于每一个足够大的$n$，存在$x_0,x_1 \in \{0,1\}^{L(n)}$和一个$p(n)$行的NAND-CIRC程序$\text{EVE}$，满足：
 $$
-\Pr_{i \sim \{0,1\}, k \sim \{0,1\}^n}[ EVE(E_k(x_i))=i ] \geq 0.99 \;.
+\Pr_{i \sim \{0,1\}, k \sim \{0,1\}^n}[ \text{EVE}(E_k(x_i))=i ] \geq 0.99 \;.
 $$
-:::
+```
 
-Note that the "furthermore" part is extremely strong. It means that if the plaintext is even a little bit larger than the key, then we can already break the scheme in a very strong way.
-That is, there will be a pair of messages $x_0$, $x_1$ (think of $x_0$ as "sell" and $x_1$ as "buy") and an efficient strategy for Eve such that if Eve gets a ciphertext $y$ then she will be able to tell whether $y$ is an encryption of $x_0$ or $x_1$   with probability very close to $1$.
-(We model breaking the scheme as Eve outputting $0$ or $1$ corresponding to whether the message sent was $x_0$ or $x_1$. Note that we could have just as well modified Eve to output $x_0$ instead of $0$ and $x_1$ instead of $1$. The key point is that a priori Eve only had a 50/50 chance of guessing whether Alice sent $x_0$ or $x_1$ but after seeing the ciphertext this chance increases to better than 99/100.)
-The condition $\mathbf{P}=\mathbf{NP}$ can be relaxed to $\mathbf{NP}\subseteq \mathbf{BPP}$ and even the weaker condition $\mathbf{NP} \subseteq \mathbf{P_{/poly}}$ with essentially the same proof.
+请注意，"此外"这部分是非常强的。它意味着如果明文甚至只比密钥长一点点，那么我们就已经能够以一种非常强的方式破解该方案。也就是说，将会存在一对消息$x_0$，$x_1$（把$x_0$想象为"卖出"，$x_1$想象为"买入"）和一个有效的策略给Eve，使得如果Eve得到一个密文$y$，她就能够以非常接近$1$的概率判断出$y$是$x_0$还是$x_1$的加密。（我们将破解方案建模为Eve输出$0$或$1$，对应于发送的消息是$x_0$还是$x_1$。注意，我们也可以同样地将Eve修改为输出$x_0$代替$0$，输出$x_1$代替$1$。关键点在于，先验地，Eve猜测Alice发送的是$x_0$还是$x_1$只有50/50的机会，但在看到密文后，这个概率增加到高于99/100。）条件$\mathbf{P}=\mathbf{NP}$可以放宽到$\mathbf{NP}\subseteq \mathbf{BPP}$，甚至更弱的条件$\mathbf{NP} \subseteq \mathbf{P_{/poly}}$，其证明思路基本相同。
 
-::: {.proofidea data-ref="breakingcryptowithnp"}
-The proof follows along the lines of [longkeysthm](){.ref} but this time paying attention to the computational aspects.
-If $\mathbf{P}=\mathbf{NP}$ then for every plaintext $x$ and ciphertext $y$, we can efficiently tell whether there exists $k\in \{0,1\}^n$ such that $E_k(x)=y$.
-So, to prove this result we need to show that if the plaintexts are long enough, there would exist a pair $x_0,x_1$ such that the probability that a random encryption of $x_1$ also is a valid encryption of $x_0$ will be very small.
-The details of how to show this are below.
-:::
+```admonish proof collapsible=true title="{{ref:thm:breakingcryptowithnp}}的证明思路"
+证明遵循{{ref:thm:longkeysthm}}的思路，但这次关注计算方面。如果$\mathbf{P}=\mathbf{NP}$，那么对于每一个明文$x$和密文$y$，我们可以有效地判断是否存在$k\in \{0,1\}^n$使得$E_k(x)=y$。所以，为了证明这个结果，我们需要证明如果明文足够长，就会存在一对$x_0,x_1$，使得一个随机的$x_1$的加密同时也是一个有效的$x_0$的加密的概率非常小。下面是如何证明这一点的细节。
+```
 
+```admonish proof collapsible=true title="{{ref:thm:breakingcryptowithnp}}的证明"
+我们只着重证明"此外"这部分，因为它更有趣，另一部分基本上可以通过相同的证明得到。
 
-::: {.proof data-ref="breakingcryptowithnp"}
-We focus on showing only the "furthermore" part since it is the more interesting and the other part follows by essentially the same proof.
+假设$(E,D)$是这样的一个加密方案，令$n$足够大，并令$x_0  = 0^{L(n)}$。对于每一个$x\in \{0,1\}^{L(n)}$，我们定义$S_x$为$x$的所有有效加密的集合。即$S_x = \{ y \;|\; \exists_{k\in \{0,1\}^n} y=E_k(x) \}$。如{{ref:thm:longkeysthm}}的证明，因为有$2^n$个密钥$k$，所以对于每一个$x\in \{0,1\}^{L(n)}$，都有$|S_x| \leq 2^n$。
 
-Suppose that $(E,D)$ is such an encryption, let $n$ be large enough, and let $x_0  = 0^{L(n)}$.
-For every $x\in \{0,1\}^{L(n)}$ we define $S_x$ to be the set of all valid encryptions of $x$.
-That is $S_x = \{ y \;|\; \exists_{k\in \{0,1\}^n} y=E_k(x) \}$.
-As in the proof of [longkeysthm](){.ref}, since there are $2^n$ keys $k$, $|S_x| \leq 2^n$ for every $x\in \{0,1\}^{L(n)}$.
+我们用$S_0$表示集合$S_{x_0}$。我们定义我们的算法$\text{EVE}$，对于输入$y\in \{0,1\}^*$，如果$y\in S_0$则输出$0$，否则输出$1$。如果$\mathbf{P}=\mathbf{NP}$，这可以在多项式时间内实现，因为密钥$k$可以充当一个有效可验证解的角色。（你能明白为什么吗？）显然$\Pr[ \text{EVE}(E_k(x_0))=0 ] =1$，所以在$\text{EVE}$得到$x_0$的加密的情况下，她猜对的概率是$1$。证明的其余部分致力于证明存在$x_1 \in \{0,1\}^{L(n)}$使得$\Pr[ \text{EVE}(E_k(x_1))=0 ]  \leq 0.01$，这将通过表明$\text{EVE}$猜错的概率最多为$\tfrac{1}{2}0 + \tfrac{1}{2}0.01 < 0.01$来结束证明。
 
-We denote by $S_0$ the set $S_{x_0}$.
-We define our algorithm $EVE$ to output $0$ on input $y\in \{0,1\}^*$ if $y\in S_0$ and to output $1$ otherwise.
-This can be implemented in polynomial time if $\mathbf{P}=\mathbf{NP}$, since the key $k$ can serve the role of an efficiently verifiable solution. (Can you see why?)
-Clearly $\Pr[ EVE(E_k(x_0))=0 ] =1$ and so in the case that $EVE$ gets an encryption of $x_0$ then she guesses correctly with probability $1$.
-The remainder of the proof is devoted to showing that there exists $x_1 \in \{0,1\}^{L(n)}$ such that $\Pr[ EVE(E_k(x_1))=0 ]  \leq 0.01$, which will conclude the proof by showing that $EVE$ guesses wrongly with probability at most $\tfrac{1}{2}0 + \tfrac{1}{2}0.01 < 0.01$.
+现在考虑下面的概率实验（我们仅为了分析而定义它）。我们考虑均匀选择$x$在$\{0,1\}^{L(n)}$中的样本空间，并定义随机变量$Z_k(x)$等于$1$当且仅当$E_k(x)\in S_0$。对于每一个$k$，映射$x \mapsto E_k(x)$是单射，这意味着$Z_k=1$的概率等于$x \in E_k^{-1}(S_0)$的概率，即$\tfrac{|S_0|}{2^{L(n)}}$。所以由期望的线性性，$\E[\sum_{k \in \{0,1\}^n} Z_k] \leq \tfrac{2^n|S_0|}{2^{L(n)}} \leq \tfrac{2^{2n}}{2^{L(n)}}$。
 
-Consider now the following probabilistic experiment  (which we define solely for the sake of analysis).
-We consider the sample space of choosing $x$ uniformly in $\{0,1\}^{L(n)}$ and define the random variable $Z_k(x)$ to equal $1$ if and only if $E_k(x)\in S_0$.
-For every $k$, the map $x \mapsto E_k(x)$ is one-to-one, which means that the probability that $Z_k=1$ is equal to the probability that $x \in E_k^{-1}(S_0)$ which is  $\tfrac{|S_0|}{2^{L(n)}}$.
-So by the linearity of expectation $\E[\sum_{k \in \{0,1\}^n} Z_k] \leq \tfrac{2^n|S_0|}{2^{L(n)}} \leq \tfrac{2^{2n}}{2^{L(n)}}$.
+我们现在将使用一个极其简单但有用的事实，称为**平均原理**（另见[引理18.10]()）：对于每一个随机变量$Z$，如果$\E[Z]=\mu$，那么以正概率有$Z \leq \mu$。（确实，如果$Z>\mu$的概率为1，那么$Z$的期望值必然大于$\mu$，就像你不可能在一个班级里所有学生都得了A或A-，但总体平均成绩却是B+一样。）在我们的情况中，这意味着以正概率有$\sum_{k\in \{0,1\}^n} Z_k \leq \tfrac{2^{2n}}{2^{L(n)}}$。换句话说，存在某个$x_1 \in \{0,1\}^{L(n)}$使得$\sum_{k\in \{0,1\}^n} Z_k(x_1) \leq \tfrac{2^{2n}}{2^{L(n)}}$。然而这意味着，如果我们选择一个随机的$k \sim \{0,1\}^n$，那么$E_k(x_1) \in S_0$的概率最多是$\tfrac{1}{2^n} \cdot \tfrac{2^{2n}}{2^{L(n)}} = 2^{n-L(n)}$。所以，特别地，如果我们有一个算法$\text{EVE}$，当$x\in S_0$时输出$0$，否则输出$1$，那么$\Pr[ \text{EVE}(E_k(x_0))=0]=1$且$\Pr[\text{EVE}(E_k(x_1))=0] \leq 2^{n-L(n)}$，如果$L(n) \geq n+10$，这个值将小于$2^{-10} < 0.01$。
+```
 
-We will now use the following extremely simple but useful fact known as the _averaging principle_ (see also [averagingprinciplerem](){.ref}): for every random variable $Z$, if $\E[Z]=\mu$, then with positive probability $Z \leq \mu$.
-(Indeed, if $Z>\mu$ with probability one, then the expected value of $Z$ will have to be larger than $\mu$, just like you can't have a class in which all students got A or A- and yet the overall average is B+.)
-In our case it means that with positive probability $\sum_{k\in \{0,1\}^n} Z_k \leq \tfrac{2^{2n}}{2^{L(n)}}$.
-In other words, there exists some $x_1 \in \{0,1\}^{L(n)}$ such that $\sum_{k\in \{0,1\}^n} Z_k(x_1) \leq \tfrac{2^{2n}}{2^{L(n)}}$.
-Yet this means that if we choose a random $k \sim \{0,1\}^n$, then the probability that $E_k(x_1) \in S_0$ is at most
-$\tfrac{1}{2^n} \cdot \tfrac{2^{2n}}{2^{L(n)}} = 2^{n-L(n)}$.
-So, in particular if we have an algorithm $EVE$ that outputs $0$ if $x\in S_0$ and outputs $1$ otherwise, then $\Pr[ EVE(E_k(x_0))=0]=1$ and $\Pr[EVE(E_k(x_1))=0] \leq 2^{n-L(n)}$ which will be smaller than $2^{-10} < 0.01$ if $L(n) \geq n+10$.
-:::
+回顾起来，{{ref:thm:breakingcryptowithnp}}也许并不令人惊讶。毕竟，正如我们之前提到的，已知最优PRG猜想（它是去随机化一次性密码本加密的基础）如果$\mathbf{P}=\mathbf{NP}$（实际上即使是$\mathbf{NP}\subseteq \mathbf{BPP}$或甚至$\mathbf{NP} \subseteq \mathbf{P_{/poly}}$）则是**错误**的。
 
+## 公钥密码学
 
+至少从Leonardo Da Vinci的时代（更不用说希腊神话中的伊卡洛斯了）起，人们就一直梦想着制造出比空气重的飞行器。Jules Verne在1865年就以相当有洞察力的细节描写了去月球旅行。但是，据我所知，在人们使用秘密书写的数千年里，直到大约50年前，还没有人考虑过在不预先交换共享密钥的情况下进行安全通信的可能性。
 
+然而在20世纪60年代末和70年代初，有几个人开始质疑这种"常识"。这些远见者中最令人惊讶的也许是伯克利的一名本科生，名叫Ralph Merkle。1974年秋天，梅克尔在他的计算机安全课程的[项目提案](http://www.merkle.com/1974/)中写道："如果两个人从来没有机会预先约定一种加密方法，那么他们将无法在不安全的信道上安全地通信，这似乎是直观上显而易见的……但我认为这是错误的"。这个项目提案被他的教授以"不够好"为由拒绝了。Merkle后来向《ACM通讯》提交了一篇论文，在论文中他为缺乏参考文献而道歉，因为他无法在科学文献中找到任何提及该问题的地方，而他唯一看到该问题被**提出**的出处是一篇科幻小说。这篇论文被拒绝了，拒绝理由是："经验表明，以明文形式传输密钥信息是极其危险的。" Merkle表明，可以设计一种协议，让Alice和Bob使用哈希函数的 $T$ 次调用来交换一个密钥，但敌手（在随机谕言模型random oracle model中，尽管他当时当然没有使用这个名字）需要大约 $T^2$ 次调用才能破解它。他推测，有可能获得这样的协议，使得破解的难度**指数级地**高于使用它们的难度，但他想不出任何具体的方法来实现这一点。
 
-In retrospect [breakingcryptowithnp](){.ref} is perhaps not surprising.
-After all, as we've mentioned before it is known that the Optimal PRG conjecture (which is the basis for the derandomized one-time pad encryption) is _false_ if $\mathbf{P}=\mathbf{NP}$ (and in fact even if $\mathbf{NP}\subseteq \mathbf{BPP}$ or even $\mathbf{NP} \subseteq \mathbf{P_{/poly}}$).
+我们直到很久以后才发现，在20世纪60年代末，比Merkle早几年，英国情报机构GCHQ的James Ellis也有[类似的想法](http://cryptome.org/jya/ellisdoc.htm)。他的好奇心是由贝尔实验室一份二战时期的手稿激起的，该手稿提出了两个人可以通过电话线安全通信的以下方式。Alice会向线路中注入噪声，Bob会中继他的消息，然后Alice会减去噪声以得到信号。其想法是，线路上的敌手只看到Alice和Bob信号的总和，不知道哪个信号来自谁。这让James Ellis思考是否有可能以数字方式实现类似的东西。正如Ellis后来回忆的那样，在1970年，他意识到原则上这应该是可能的，因为他可以设想一个假设的黑匣子 $B$，当输入一个"句柄" $\alpha$ 和明文 $x$ 时，它会给出一个"密文" $y$，并且会有一个与 $\alpha$ 对应的密钥 $\beta$，这样将 $\beta$ 和 $y$ 输入黑匣子就能恢复出 $x$。然而，Ellis不知道如何实际实例化这个黑匣子。他和同事们一直把这个难题作为谜题交给聪明的新员工，直到1973年，其中一位新员工Clifford Cocks基于因数分解问题提出了一个候选解决方案；1974年，另一位 GCHQ 新员工Malcolm Williamson利用模幂运算提出了一个解决方案。
 
-## Public key cryptography
+但在所有思考公钥密码学的人中，看得最远的可能是Stanford大学的两位研究员，Whit Diffie和Martin Hellman。他们意识到，随着电子通信的出现，密码学将在间谍和潜艇的军事领域之外找到新的应用，他们理解在这个用户众多、点对点通信的新世界里，密码学将需要扩展规模。Diffie和Hellman设想了一种对象，我们现在称之为"陷门(trapdoor)置换"，尽管他们当时称之为"单向陷门函数"或者有时简称为"公钥加密"。虽然他们没有完整的正式定义，但他们的想法是，这是一个容易（例如，多项式时间内）**计算**但困难（例如，指数时间内）**求逆**的单射函数。然而，存在某个特定的**陷门**，知晓它就能在多项式时间内求逆。Diffie和Hellman认为，使用这样的陷门函数，Alice和Bob有可能**从未交换过密钥**就安全地通信。但他们并没有止步于此。他们意识到，保护通信的**完整性**(integrity)与保护其**保密性**(secrecy)同样重要。因此，他们设想Alice可以"反向运行加密"来认证或**签名**消息。
 
-People have been dreaming about heavier-than-air flight since at least the days of Leonardo Da Vinci (not to mention Icarus from the greek mythology).
-Jules Verne wrote with rather insightful details about going to the moon in 1865.
-But, as far as I know, in all the thousands of years people have been using secret writing, until about 50 years ago no one has considered the possibility of communicating securely without first exchanging a shared secret key.
+在那个时候，Diffie和Hellman的处境与那些预言某种粒子应该存在但没有任何实验验证的物理学家们颇为相似。幸运的是，他们[遇到了Ralph Merkle](http://cr.yp.to/bib/1988/diffie.pdf)，他关于概率性**密钥交换协议**(probabilistic key exchange protocol)的想法，连同他们的Stanford同事[John Gill](http://hdl.handle.net/11299/107353)的一个建议，启发他们提出了今天众所周知的Diffie-Hellman密钥交换（他们不知道的是，这个协议两年前已被 GCHQ 的Malcolm Williamson发现）。他们于1976年发表了论文[《密码学的新方向》](https://www-ee.stanford.edu/~hellman/publications/24.pdf)，这篇论文被认为催生了现代密码学。
 
-Yet in the late 1960's and early 1970's, several people started to question this "common wisdom".
-Perhaps the most surprising of these visionaries was an undergraduate student at Berkeley named Ralph Merkle.
-In the fall of 1974 Merkle wrote in a [project proposal](http://www.merkle.com/1974/) for his computer security course that while "it might seem intuitively obvious that if two people have never had the opportunity to prearrange an encryption method, then they will be unable to communicate securely over an insecure channel... I believe it is false".
-The project proposal was rejected by his professor as "not good enough".
-Merkle later submitted a paper to the communication of the ACM where he apologized for the lack of references since he was unable to find any mention of the problem in the scientific literature, and the only source where he saw the problem even _raised_ was in a science fiction story.
-The paper was rejected with the comment that "Experience shows that it is extremely dangerous to transmit key information in the clear."
-Merkle showed that one can design a protocol where Alice and Bob can use $T$ invocations of a hash function to exchange a key, but an adversary (in the random oracle model, though he of course didn't use this name) would need roughly $T^2$ invocations to break it. He conjectured that it may be possible to obtain such protocols where breaking is _exponentially harder_ than using them, but could not think of any concrete way to doing so.
+Diffie-Hellman密钥交换至今仍广泛应用于安全通信。然而，它仍未实现Diffie和Hellman梦寐以求的陷门函数。这一点在次年由Rivest、Shamir和Adleman完成，他们提出了 RSA 陷门函数，通过Diffie和Hellman的框架，该函数不仅实现了加密，还实现了签名。（RSA 函数的一个近似变体早些时候已被 GCHQ 的Clifford Cocks发现，但据我所知，Cocks、Ellis和Williamson并未意识到其在数字签名方面的应用。）从那时起，密码学领域开始了一系列进展，热潮延续至今。
 
-We only found out much later that in the late 1960's, a few years before Merkle, James Ellis of the British Intelligence agency GCHQ was [having similar thoughts](http://cryptome.org/jya/ellisdoc.htm).
-His curiosity was spurred by an old World-War II manuscript from Bell Labs that suggested the following way that two people could communicate securely over a phone line.
-Alice would inject noise to the line, Bob would relay his messages, and then Alice would subtract the noise to get the signal.
-The idea is that an adversary over the line sees only the sum of Alice's and Bob's signals, and doesn't know what came from what. This got James Ellis thinking whether it would be possible to achieve something like that digitally.
-As Ellis later recollected, in 1970 he realized that in principle this should be possible, since he could think of an hypothetical black box $B$ that on input a "handle" $\alpha$ and plaintext  $x$ would give a "ciphertext" $y$ and that there would be a secret key $\beta$ corresponding to $\alpha$, such that feeding $\beta$ and $y$ to the box would recover $x$.
-However, Ellis had no idea how to actually instantiate this box. He and others kept giving this question as a puzzle to bright new recruits until one of them, Clifford Cocks, came up in 1973 with a candidate solution loosely based on the factoring problem; in 1974 another GCHQ recruit, Malcolm Williamson,  came up with a solution using modular exponentiation.
+```admonish pic id="diffiehellmanmerklegillfig"
+![diffiehellmanmerklegillfig](./images/chapter21/rsadhmg.png) 
 
-But among all those thinking of public key cryptography, probably the people who saw the furthest were two researchers at Stanford, Whit Diffie and Martin Hellman.
-They realized that with the advent of electronic communication, cryptography would find new applications beyond the military domain of spies and submarines, and they understood that in this new world of many users and point to point communication, cryptography will need to scale up.
-Diffie and Hellman envisioned an object which we now call "trapdoor permutation" though they called "one way trapdoor function" or sometimes simply "public key encryption".
-Though they didn't have full formal definitions, their idea was that this is an injective function that is easy (e.g., polynomial-time) to _compute_ but hard (e.g., exponential-time)  to _invert_.
-However, there is a certain _trapdoor_, knowledge of which would allow polynomial time inversion.
-Diffie and Hellman argued that using such a trapdoor function, it would be possible for Alice and Bob to communicate securely _without ever having exchanged a secret key_.
-But they didn't stop there.
-They realized that protecting the _integrity_ of communication is no less important than protecting its _secrecy_.
-Thus they imagined that Alice could "run encryption in reverse" in order to certify or _sign_ messages.
+{{pic}}{fig:diffiehellmanmerklegill} 左上：Ralph Merkle、Martin Hellman和Whit Diffie，他们在1976年共同提出了**公钥加密**的概念和一个**密钥交换协议**。左下：Adi Shamir、Ron Rivest和Leonard Adleman，他们继Diffie和Hellman的论文之后，发现了可用于公钥加密和数字签名的 RSA 函数。有趣的是，可以看到他们身后黑板上的方程 $\mathbf{P}=\mathbf{NP}$。右：John Gill，他是第一个向Diffie和Hellman建议使用模幂运算作为易于计算但难以求逆函数的人。
+```
 
+### 定义公钥加密
 
+**公钥加密**由三个算法组成：
 
-At the point, Diffie and Hellman were in a position not unlike physicists who predicted that a certain particle should exist but without any experimental verification.
-Luckily they [met Ralph Merkle](http://cr.yp.to/bib/1988/diffie.pdf), and his ideas about a probabilistic _key exchange protocol_, together with a suggestion from their Stanford colleague [John Gill](http://hdl.handle.net/11299/107353), inspired them to come up with what today is known as the [Diffie Hellman Key Exchange](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange) (which unbeknownst to them was found two years earlier at GCHQ by Malcolm Williamson).
-They published their paper ["New Directions in Cryptography"](https://www-ee.stanford.edu/~hellman/publications/24.pdf) in 1976, and it is considered to have brought about the birth of modern cryptography.
+* **密钥生成算法**，我们记作 $KeyGen$ 或简称 $KG$，是一个随机化算法，输出一对字符串 $(e,d)$，其中 $e$ 称为**公钥**（或**加密密钥**），$d$ 称为**私钥**（或**解密密钥**）。密钥生成算法的输入是 $1^n$（即一个长度为 $n$ 的 1 组成的字符串）。我们将 $n$ 称为方案的安全参数。$n$ 越大，加密越安全，但效率也会越低。
+* **加密算法**，我们记作 $E$，输入加密密钥 $e$ 和明文 $x$，输出密文 $y=E_e(x)$。
+* **解密算法**，我们记作 $D$，输入解密密钥 $d$ 和密文 $y$，输出明文 $x=D_d(y)$。
 
-The Diffie-Hellman Key Exchange is still widely used today for secure communication.
-However, it still felt short of providing Diffie and Hellman's elusive trapdoor function.
-This was done the next year by Rivest, Shamir and Adleman who came up with the RSA trapdoor function, which through the framework of Diffie and Hellman yielded not just encryption but also signatures.
-(A close variant of the RSA function was   discovered earlier by Clifford Cocks at GCHQ, though as far as I can tell Cocks, Ellis and Williamson did not realize the application to digital signatures.)
-From this point on began a flurry of advances in cryptography which hasn't died down till this day.
+```admonish pic id="publickeyencfig"
+![publickeyencfig](./images/chapter21/publickeyenc.png) 
 
-![Top left: Ralph Merkle, Martin Hellman and Whit Diffie, who together came up in 1976 with the concept of _public key encryption_ and a _key exchange protocol_. Bottom left: Adi Shamir, Ron Rivest, and Leonard Adleman who, following Diffie and Hellman's paper, discovered the RSA function that can be used for public key encryption and digital signatures. Interestingly, one can see the equation $\mathbf{P}=\mathbf{NP}$ on the blackboard behind them. Right: John Gill, who was the first person to suggest to Diffie and Hellman that they use modular exponentiation as an easy-to-compute but hard-to-invert function. ](../figure/rsadhmg.png){#diffiehellmanmerklegillfig .margin  }
+{{pic}}{fig:publickeyenc} 在**公钥加密**中，Alice 生成一个私钥/公钥对 $(e,d)$，公开 $e$ 并保密 $d$。要为 Alice 加密一条消息，只需要知道 $e$。要解密密文，则需要知道 $d$。
+```
 
+现在我们给出一个正式定义：
 
-### Defining public key encryption
+```admonish quote title=""
+{{defc}}{def:publickeyencdef}[公钥加密]
 
-A _public key encryption_ consists of a triple of algorithms:
+一个具有明文长度 $L:\N \rightarrow \N$ 的**计算上保密的公钥加密**(computationally secret public key encryption)方案，是一个由三个随机化多项式时间算法 $(KG,E,D)$ 组成的三元组，满足以下条件：
 
-* The _key generation algorithm_, which we denote by $KeyGen$ or $KG$ for short, is a randomized algorithm that outputs a pair of strings $(e,d)$ where $e$ is known as the _public_ (or _encryption_) key, and $d$ is known as the _private_ (or _decryption_) key.
-The key generation algorithm gets as input $1^n$ (i.e., a string of ones of length $n$).
-We refer to $n$ as the _security parameter_ of the scheme.
-The bigger we make $n$, the more secure the encryption will be, but also the less efficient it will be.
+*   对于每个 $n$，如果 $(e,d)$ 是以正概率由 $KG(1^n)$ 输出的，且 $x\in \{0,1\}^{L(n)}$，那么 $D_d(E_e(x))=x$ 的概率为 1。
+*   对于每个多项式 $p$ 和所有足够大的 $n$，如果 $P$ 是一个最多有 $p(n)$ 行代码的 NAND-CIRC 程序，那么对于每个 $x,x'\in \{0,1\}^{L(n)}$，有 $\left| \E[ P(e,E_e(x))] - \E[P(e,E_e(x'))] \right| < 1/p(n)$，其中该概率取值于 $KG$ 和 $E$ 的随机性。
+```
 
-* The _encryption algorithm_, which we denote by $E$, takes the encryption key $e$ and a plaintext $x$, and outputs the ciphertext $y=E_e(x)$.
+{{ref:def:publickeyencdef}}允许 $E$ 和 $D$ 是**随机化**算法。事实上，为了实现计算安全性，$E$ 必须是随机化的。同样也表明，与私钥加密的情况不同，我们可以将一个仅能处理**一比特长**消息的公钥加密方案，转化为能够加密任意长消息（特别是比密钥更长的消息）的公钥加密方案。这尤其意味着，即使对于一比特长的消息，我们也不可能获得一个完美保密的公钥加密方案（因为这将暗示存在一个完美保密的公钥加密方案，从而特别是存在一个能够加密比密钥更长消息的私钥加密方案）。
 
-* The _decryption algorithm_, which we denote by $D$, takes the decryption key $d$ and a ciphertext $y$, and outputs the plaintext $x=D_d(y)$.
+在本章中，我们不会给出公钥加密方案的完整构造，但会提及当今最广泛使用的一些方案所基于的基本思想。这些方案通常属于以下两类之一：
 
+* **群论构造**：基于诸如**整数分解**、有限域或椭圆曲线上的**离散对数**等问题。
+* **格/编码构造**：基于诸如**格上的最近向量**或**有界距离解码**等问题。
 
+基于群论的加密方案，如 RSA 密码系统、Diffie-Hellman 协议和椭圆曲线密码学，目前应用更为广泛。但基于格/编码的方案近来日益兴起，特别是因为已知的群论加密方案可以被**量子计算机**破解，我们将在[第23章](./chapter_23.md)讨论这一点。
 
-![In a _public key encryption_, Alice generates a private/public keypair $(e,d)$,  publishes $e$ and keeps $d$ secret. To encrypt a message for Alice, one only needs to know $e$. To decrypt it we need to know $d$.](../figure/publickeyenc.png){#publickeyencfig .margin  }
+### Diffie-Hellman 密钥交换
 
-We now make this a formal definition:
+仅作为公钥加密方案如何构造的一个例子，现在让我们描述一下 Diffie-Hellman 密钥交换。我们将以较为非正式的方式描述 Diffie-Hellman 协议，不给出完整的安全性分析。
 
-::: {.definition title="Public Key Encryption" #publickeyencdef}
-A _computationally secret public key encryption_ with plaintext length $L:\N \rightarrow \N$ is a triple of randomized polynomial-time algorithms $(KG,E,D)$ that satisfy the following conditions:
+支撑 Diffie-Hellman 协议的计算问题是**离散对数问题**(discrete logarithm problem)。假设 $g$ 是某个整数。我们可以计算映射 $x \mapsto g^x$ 及其**逆映射** $y \mapsto \log_g y$。（例如，我们可以通过**二分搜索**来计算对数：从一个保证包含 $\log_g y$ 的区间 $[x_{min},x_{max}]$ 开始。然后测试区间的中点 $x_{mid}$ 是否满足 $g^{x_{mid}} > y$，并据此将区间大小减半。）
 
-* For every $n$, if $(e,d)$ is output by $KG(1^n)$ with positive probability, and $x\in \{0,1\}^{L(n)}$, then $D_d(E_e(x))=x$ with probability one.
+然而，现在假设我们使用**模运算**，即对某个素数 $p$ 取模。如果 $p$ 有 $n$ 位二进制数字，且 $g$ 在 $[p]$ 中，那么我们可以在 $n$ 的多项式时间内计算映射 $x \mapsto g^x \mod p$。（这并不简单，对你来说是一个很好的练习；提示：首先证明可以使用模 $p$ 下的 $k$ 次模乘来计算映射 $k \mapsto g^{2^k} \mod p$。如果遇到困难，可以查阅[维基百科相关条目](https://en.wikipedia.org/wiki/Exponentiation_by_squaring)。）另一方面，由于模运算的“回绕”特性，我们无法运行二分搜索来找到这个映射的逆（称为**离散对数**）。事实上，目前没有已知的多项式时间算法可以计算这个离散对数映射 $(g,x,p) \mapsto \log_g x \mod p$，这里我们将 $\log_g x \mod p$ 定义为满足 $g^a = x \mod p$ 的数 $a \in [p]$。
 
-* For every polynomial $p$, and sufficiently large $n$, if $P$ is a NAND-CIRC program of at most $p(n)$ lines then for every $x,x'\in \{0,1\}^{L(n)}$, $\left| \E[ P(e,E_e(x))] - \E[P(e,E_e(x'))] \right| < 1/p(n)$, where this probability is taken over the coins of $KG$ and $E$.
-:::
+Bob 使用 Diffie-Hellman 协议向 Alice 发送消息的过程如下：
 
-[publickeyencdef](){.ref} allows $E$ and $D$ to be _randomized_ algorithms.
-In fact, it turns out that it is _necessary_ for $E$ to be randomized to obtain computational secrecy.
-It also turns out that, unlike the private key case, we can transform a public-key encryption that works for messages that are _only one bit long_ into a public-key encryption scheme that can encrypt arbitrarily long messages, and in particular messages that are _longer than the key_.
-In particular this means that we cannot obtain a perfectly secret public-key encryption scheme even for one-bit long messages (since it would imply a perfectly secret public-key, and hence in particular private-key, encryption with messages longer than the key).
+* **Alice：** 随机选择一个 $n$ 比特长的素数 $p$（可以通过随机选择数并对其运行素性测试算法来实现），并随机选择 $g$ 和 $a$（在 $[p]$ 范围内）。她将三元组 $(p,g,g^a \mod p)$ 发送给 Bob。
+* **Bob：** 收到三元组 $(p,g,h)$ 后，Bob 要向 Alice 发送一条消息 $x \in \{0,1\}^L$。他随机选择 $b \in [p]$，然后将一对值 $(g^b \mod p, rep(h^b \mod p) \oplus x)$ 发送给 Alice。这里 $rep:[p] \rightarrow \{0,1\}^*$ 是一个“表示函数”，将 $[p]$ 映射到 $\{0,1\}^L$。（函数 $rep$ 不必是单射，你可以认为 $rep(z)$ 就是简单地输出 $z$ 的自然二进制表示中的 $L$ 位。它确实需要满足某些技术条件，在此描述中我们省略了这些条件。）
+* **Alice：** 收到 $g',z$ 后，Alice 通过计算 $rep(g'^a \mod p) \oplus z$ 来恢复出 $x$。
 
-We will not give full constructions for public key encryption schemes in this chapter, but will mention some of the ideas that underlie the most widely used schemes today.
-These generally belong to one of two families:
+该协议的正确性源于一个简单事实：对于任意 $g,a,b$，有 $(g^a)^b = (g^b)^a$，并且在对素数 $p$ 取模时这仍然成立。其安全性依赖于一个计算性假设，即即使在某种“平均情况”下，计算这个映射也是困难的（这个计算性假设被称为**[判定性 Diffie-Hellman 假设](https://en.wikipedia.org/wiki/Decisional_Diffie%E2%80%93Hellman_assumption)**, Decisional Diffie Hellman assumption）。Diffie-Hellman 密钥交换协议可以被视为一种公钥加密，其中 Alice 的第一条消息是公钥，Bob 的消息是加密后的密文。
 
-* _Group theoretic constructions_ based on problems such as _integer factoring_ and the _discrete logarithm_ over finite fields or elliptic curves.
+我们可以将 Diffie-Hellman 协议理解为基于一个“陷门伪随机生成器”，其中三元组 $g^a, g^b, g^{ab}$ 对不知道 $a$ 的人来说看起来是“随机的”，但知道 $a$ 的人可以看到，将第二个元素取 $a$ 次幂就能得到第三个元素。Diffie-Hellman 协议可以在任何我们能有效计算群运算的[有限阿贝尔群](https://en.wikipedia.org/wiki/Abelian_group)的环境下抽象地描述。它已经在除模 $p$ 数群以外的其他群上实现，特别是**椭圆曲线密码学（ECC, Elliptic Curve Cryptography）** 就是通过在椭圆曲线群上实现 Diffie-Hellman 协议而获得的，这带来了一些实际优势。另一个常见的基于群论的密钥交换/公钥加密协议基础是 RSA 函数。Diffie-Hellman（包括模算术变体和椭圆曲线变体）和 RSA 的一个主要缺点是，这两种方案都可以被**量子计算机**在多项式时间内破解。我们将在本课程后续章节讨论量子计算。
 
-* _Lattice/coding based constructions_ based on problems such as the _closest vector in a lattice_ or _bounded distance decoding_.
+## 其他安全性概念
 
-Group-theory based encryptions such as the RSA cryptosystem, the Diffie-Hellman protocol, and Elliptic-Curve Cryptography, are currently more widely implemented.
-But the lattice/coding schemes are recently on the rise, particularly because the known group theoretic encryption schemes can be broken by _quantum computers_, which we discuss in [quantumchap](){.ref}.
+密码学的范畴远不止加密方案和被动敌手的概念。其核心目标之一是**完整性**或**认证**：保护通信免遭敌手的篡改。完整性通常比保密性更为基础：无论是软件更新还是浏览新闻，人们往往更关心信息是否确实来自其所声称的来源，而非通信内容是否保密。**数字签名方案**是用于认证的公钥加密的对应物，并被广泛使用（特别是作为[公钥证书](https://en.wikipedia.org/wiki/Public_key_certificate)的基础），为数字世界提供了信任的基础。
 
-### Diffie-Hellman key exchange
+类似地，即使对于加密，我们也常常需要确保能抵御**主动攻击**的安全性，因此出现了诸如不可延展性和[适应性选择密文](https://en.wikipedia.org/wiki/Adaptive_chosen-ciphertext_attack)安全性等概念。加密方案的安全性取决于密钥的安全性，因此确保密钥被正确生成、能够抵御泄露甚至实现密钥更新（即[前向安全性](https://en.wikipedia.org/wiki/Forward_secrecy)）的机制也得到了研究。希望本章能让你对密码学这一知识领域有所欣赏，但不会让你产生在实现密码学方案时虚假的自信。
 
-As just one example of how public key encryption schemes are constructed, let us now describe the Diffie-Hellman key exchange.
-We describe the Diffie-Hellman protocol in a somewhat of an informal level, without presenting a full security analysis.
+**密码哈希函数**是另一种广泛使用的工具，具有多种用途，包括从高熵源中提取随机性、生成文件难以伪造的短“摘要”、保护密码等等。
 
-The computational problem underlying the Diffie Hellman protocol is the _discrete logarithm problem_.
-Let's suppose that $g$ is some integer.
-We can compute the map $x \mapsto g^x$ and also its _inverse_ $y \mapsto \log_g y$. 
-(For example, we can  compute a logarithm is by _binary search_: start with some interval $[x_{min},x_{max}]$ that is guaranteed to contain $\log_g y$. We can then test whether the interval's midpoint $x_{mid}$ satisfies $g^{x_{mid}} > y$, and based on that halve the size of the interval.)
+## 魔法
 
-However, suppose now that we use _modular arithmetic_ and work modulo some prime number $p$.
-If $p$ has $n$ binary digits and  $g$ is in $[p]$ then we can compute the map $x \mapsto g^x \mod p$ in time polynomial in $n$.
-(This is not trivial, and is a great exercise for you to work this out; as a hint, start by showing that one can compute the map $k \mapsto g^{2^k} \mod p$ using $k$ modular multiplications modulo $p$, if you're stumped, you can look up [this Wikipedia entry](https://en.wikipedia.org/wiki/Exponentiation_by_squaring).)
-On the other hand, because of the "wraparound" property of modular arithmetic, we cannot run binary search to find the inverse of this map (known as the _discrete logarithm_).
-In fact, there is no known polynomial-time algorithm for computing this discrete logarithm map $(g,x,p) \mapsto \log_g x \mod p$, where we define $\log_g x \mod p$ as the number $a \in [p]$ such that $g^a = x \mod p$.
+除了加密和签名方案，密码学家们还成功构建了一些看似矛盾、如同“魔法”般的成果。我们简要讨论其中一些。这里不提供任何细节，但希望能激发您的好奇心去探索更多。
 
-The Diffie-Hellman protocol for Bob to send a message to Alice is as follows:
+### 零知识证明
 
-* __Alice:__ Chooses $p$ to be a random $n$ bit long prime (which can be done by choosing random numbers and running a primality testing algorithm on them), and $g$ and $a$ at random in $[p]$. She sends to Bob the triple $(p,g,g^a \mod p)$.
+1903年10月31日，数学家Frank Nelson Cole在美国数学会的一次会议上做了一个小时的演讲，期间他没有说一个字。相反，他在黑板上计算了 $2^{67}-1$ 的值，等于 $147,573,952,589,676,412,927$，然后证明了这个数等于 $193,707,721 \times 761,838,257,287$。Cole的证明显示了 $2^{67}-1$ 不是素数，但它也揭示了额外的信息，即它的实际因子。证明通常如此：它们教给我们的不仅仅是陈述的真实性。
 
-* __Bob:__ Given the triple $(p,g,h)$, Bob sends a message $x \in \{0,1\}^L$  to Alice by choosing $b$ at random in $[p]$, and sending to Alice the pair $(g^b \mod p, rep(h^b \mod p) \oplus x)$ where $rep:[p] \rightarrow \{0,1\}^*$ is some "representation function"  that maps $[p]$ to $\{0,1\}^L$. (The function $rep$ does not need to be one-to-one and you can think of $rep(z)$ as simply outputting  $L$ of the bits of $z$ in the natural binary representation, it does  need to satisfy certain technical conditions which we omit in this description.)
+而在**零知识证明**(zero knowledge proof)中，我们试图达到相反的效果。我们想要一个关于陈述 $X$ 的证明，这个证明可以**严格地显示**，除了 $X$ 为真这一事实之外，它**绝不透露关于 $X$ 的任何额外信息**。这被证明是一个极其有用的工具，可用于各种任务，包括认证、安全协议、投票、[加密货币中的匿名性](https://z.cash/technology/zksnarks.html)等等。构建这些工具依赖于 $\mathbf{NP}$ 完备性理论。因此，这个最初旨在给出**负面结果**（表明某些问题是困难的）的理论，最终产生了**积极的应用**，使我们能够实现否则无法实现的任务。
 
-* __Alice:__ Given $g',z$, Alice recovers $x$ by outputting $rep(g'^a \mod p) \oplus z$.
+### 全同态加密
 
-The correctness of the protocol follows from the simple fact that $(g^a)^b = (g^b)^a$ for every $g,a,b$ and this still holds if we work modulo $p$. Its security relies on the computational assumption that computing this map is hard, even in a certain "average case" sense (this computational assumption is known as the [Decisional Diffie Hellman assumption](https://en.wikipedia.org/wiki/Decisional_Diffie%E2%80%93Hellman_assumption)).
-The Diffie-Hellman key exchange protocol can be thought of as a public key encryption where Alice's first message is the public key, and Bob's message is the encryption.
+假设我们有一个字符串的逐比特加密结果 $E_k(x_0),\ldots,E_k(x_{n-1})$。根据设计，这些密文应该是“完全不可读的”，我们不应该能从中提取关于 $x_i$ 的任何信息。然而，早在1978年，Rivest、Adleman和Dertouzos就观察到，这并不意味着我们不能**操作**这些加密数据。例如，事实证明，加密方案的安全性并不立即排除这样一种能力：获取一对密文 $E_k(a)$ 和 $E_k(b)$，并从中计算出 $E_k(a \text{ NAND } b)$ **而不知道密钥 $k$**。但是，是否存在允许这种操作的加密方案？如果存在，这是一个漏洞还是一个特性？
 
-One can think of the Diffie-Hellman protocol as being based on a "trapdoor pseudorandom generator" where the triple $g^a,g^{b},g^{ab}$ looks "random" to someone that doesn't know $a$, but someone that does know $a$ can see that raising the second element to the $a$-th power yields the third element.
-The Diffie-Hellman protocol can be described abstractly in the context of any [finite Abelian group](https://en.wikipedia.org/wiki/Abelian_group) for which we can efficiently compute the group operation.
-It has been implemented on other groups than numbers modulo $p$, and in particular [Elliptic Curve Cryptography (ECC)](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography) is obtained by basing the Diffie Hellman on elliptic curve groups which gives some practical advantages.
-Another common group theoretic basis for key-exchange/public key encryption protocol is the RSA function.
-A big disadvantage of Diffie-Hellman (both the modular arithmetic and elliptic curve variants) and RSA is that both schemes can be broken in polynomial time by a _quantum computer_.
-We will discuss quantum computing later in this course.
+Rivest等人已经表明，这种加密方案可能**极其有用**，并且在云计算时代，其效用只增不减。毕竟，如果我们能计算NAND，那么我们就可以利用它在加密数据上运行任何算法 $P$，将 $E_k(x_0),\ldots,E_k(x_{n-1})$ 映射到 $E_k(P(x_0,\ldots,x_{n-1}))$。例如，客户端可以将其秘密数据 $x$ 以加密形式存储在云端，让云提供商对这些数据执行各种计算，而永远不会向提供商透露私钥，因此提供商**永远无法获知关于秘密数据的任何信息**。
 
-## Other security notions
+这种方案**是否存在**的问题花了更长的时间才得以解决。直到2009年，Craig Gentry才首次提出了一种加密方案的构造，该方案允许在数据上计算通用的基础门电路（在密码学术语中称为**全同态加密方案**）。金特里的方案在效率方面还有很多不足之处，而改进该方案一直是一项密集研究计划的焦点，并且已经取得了显著进展。
 
-There is a great deal to cryptography beyond just encryption schemes, and beyond the notion of a passive adversary.
-A central objective is _integrity_ or _authentication_: protecting communications from being modified by an adversary.
-Integrity is often more fundamental than secrecy: whether it is a software update or viewing the news, you might often not care about the communication being secret as much as that it indeed came from its claimed source.
-_Digital signature schemes_ are the analog of public key encryption for authentication, and are widely used (in particular as the basis for [public key certificates](https://en.wikipedia.org/wiki/Public_key_certificate)) to provide a foundation of trust in the digital world.
+### 多方安全计算
 
-Similarly, even for encryption, we often need to ensure security against _active attacks_, and so notions such as non-malleability and [adaptive chosen ciphertext](https://en.wikipedia.org/wiki/Adaptive_chosen-ciphertext_attack) security have been proposed.
-An encryption scheme is only as secure as the secret key, and mechanisms to make sure the key is generated properly, and is protected against refresh or even compromise (i.e., [forward secrecy](https://en.wikipedia.org/wiki/Forward_secrecy)) have been studied as well.
-Hopefully this chapter provides you with some appreciation for cryptography as an intellectual field, but does not imbue you with a false self confidence in implementing it.
+密码学关乎让互不信任的各方能够实现共同目标。或许实现这一目标最通用的原语是[安全多方计算](https://en.wikipedia.org/wiki/Secure_multi-party_computation)(secure multiparty computation)。安全多方计算的思想是，$n$ 方交互以计算某个函数 $F(x_0,\ldots,x_{n-1})$，其中 $x_i$ 是第 $i$ 方的私有输入。关键在于**不存在普遍信任的方或权威机构**，并且除了函数的输出外，关于秘密数据的任何信息都不会被泄露。一个例子是**电子投票协议**，其中只揭示总票数，保护了选民的个人隐私，同时无需信任任何权威机构能够正确计票或保密信息。另一个例子是实现[第二价格（又称Vickrey）拍卖](https://en.wikipedia.org/wiki/Vickrey_auction)，其中 $n-1$ 方对属于第 $n$ 方的物品出价，物品归出价最高者所有，但价格是**第二高出价**。使用安全多方计算，我们可以实现第二价格拍卖，其方式将确保所有出价的数值（甚至包括最高出价）保密，只公开第二高的出价；并确保所有出价者的身份（甚至包括第二高出价者）保密，只公开最高出价者。我们强调，这样的协议甚至不需要信任拍卖师本人，拍卖师也不会了解到任何额外信息。安全多方计算甚至可以用于计算**随机化**过程，其中一个例子是在网上玩扑克，而无需信任任何服务器能够正确洗牌或不泄露信息。
 
-_Cryptographic hash functions_ are another widely used tool with a variety of uses, including extracting randomness from high entropy sources, achieving hard-to-forge short "digests" of files, protecting passwords, and much more.
+```admonish hint title="本章回顾"
+* 我们可以形式化地定义加密方案安全性的概念。
+* **完美保密性**确保敌手无论拥有何种计算能力，都无法从密文中获知**任何**关于明文的信息。
+* 一次性密码本是一种完美保密的加密方案，其密钥长度等于消息长度。没有任何完美保密的加密方案可以使用短于消息的密钥。
+* **计算保密性**可以与完美保密性相媲美，因为它确保计算能力受限的敌手从观察密文中获得的优势是极小的（指数级小）。如果最优 PRG 猜想成立，那么存在一种计算上安全的加密方案，其消息长度可以（几乎）**指数级地大于**密钥长度。
+* 存在许多远超私钥加密范畴的密码学工具。这些工具包括**公钥加密**、**数字签名**和**哈希函数**，以及更“魔法”般的工具，如**多方安全计算**、**全同态加密**、**零知识证明**等等。
+```
 
-## Magic
-
-Beyond encryption and signature schemes, cryptographers have managed to obtain objects that truly seem paradoxical and "magical".
-We briefly discuss some of these objects.
-We do not give any details, but hopefully this will spark your curiosity to find out more.
-
-### Zero knowledge proofs
-
-On October 31, 1903, the mathematician Frank Nelson Cole gave an hourlong lecture to a meeting of the American Mathematical Society where he did not speak a single word.
-Rather, he calculated on the board the value $2^{67}-1$ which is equal to $147,573,952,589,676,412,927$, and then showed that this number is equal to $193,707,721 \times 761,838,257,287$.
-Cole's proof showed that $2^{67}-1$ is not a prime, but it also revealed additional information, namely its actual factors.
-This is often the case with proofs: they teach us more than just the validity of the statements.
-
-In _Zero Knowledge Proofs_ we try to achieve the opposite effect.
-We want a proof for a statement $X$ where we can _rigorously show_ that the proofs reveals _absolutely no additional information about $X$_ beyond the fact that it is true.
-This turns out to be an extremely useful object for a variety of tasks including authentication, secure protocols, voting, [anonymity in cryptocurrencies](https://z.cash/technology/zksnarks.html), and more.
-Constructing these objects relies on the theory of $\mathbf{NP}$ completeness.
-Thus this theory that originally was designed to give a _negative result_ (show that some problems are hard) ended up yielding _positive applications_, enabling us to achieve tasks that were not possible otherwise.
-
-
-### Fully homomorphic encryption
-
-Suppose that we are given a bit-by-bit encryption of a string $E_k(x_0),\ldots,E_k(x_{n-1})$.
-By design, these ciphertexts are supposed to be "completely unscrutable" and we should not be able to extract any information about $x_i$'s from it.
-However, already in 1978, Rivest,  Adleman and Dertouzos observed that this does not imply that we could not _manipulate_ these encryptions.
-For example, it turns out the security of an encryption scheme does not immediately rule out the ability to take a pair of encryptions $E_k(a)$ and $E_k(b)$ and compute from them $E_k(a NAND b)$ _without knowing the secret key $k$_.
-But do there exist encryption schemes that allow such manipulations? And if so, is this a bug or a feature?
-
-Rivest et al already showed that such encryption schemes could be _immensely_ useful, and their utility has only grown in the age of cloud computing.
-After all, if we can compute NAND then we can use this to run any algorithm $P$ on the encrypted data, and map $E_k(x_0),\ldots,E_k(x_{n-1})$ to $E_k(P(x_0,\ldots,x_{n-1}))$.
-For example, a client could store their secret data $x$ in encrypted form on the cloud, and have the cloud provider perform all sorts of computation on these data without ever revealing to the provider the private key, and so without the provider _ever learning any information_ about the secret data.
-
-The question of _existence_ of such a scheme took much longer time to resolve. Only in 2009 Craig Gentry gave the first construction of an encryption scheme that allows to compute a universal basis of gates on the data (known as a _Fully Homomorphic Encryption scheme_ in crypto parlance).
-Gentry's scheme left much to be desired in terms of efficiency, and improving upon it has been the focus of an intensive research program that has already seen significant improvements.
-
-### Multiparty secure computation
-
-Cryptography is about enabling mutually distrusting parties to achieve a common goal.
-Perhaps the most general primitive achieving this objective is [secure multiparty computation](https://en.wikipedia.org/wiki/Secure_multi-party_computation).
-The idea in secure multiparty computation is that $n$ parties interact together to compute some function  $F(x_0,\ldots,x_{n-1})$ where $x_i$ is the private input of the $i$-th party.
-The crucial point is that there is _no commonly trusted party or authority_ and that nothing is revealed about the secret data beyond the function's output.
-One example is an _electronic voting protocol_ where only the total vote count is revealed, with the privacy of the individual voters protected, but without having to trust any authority to either count the votes correctly or to keep information confidential.
-Another example is implementing a [second price (aka Vickrey) auction](https://en.wikipedia.org/wiki/Vickrey_auction) where $n-1$ parties submit bids to an item owned by the $n$-th party, and the item goes to the highest bidder but at the price of the _second highest bid_.
-Using secure multiparty computation we can implement second price auction in a way that will ensure the secrecy of the numerical values of all bids (including even the top one) except the second highest one, and the secrecy of the identity of all bidders (including even the second highest bidder) except the top one.
-We emphasize that such a protocol requires no trust even in the auctioneer itself, who will also not learn any additional information.
-Secure multiparty computation can be used even for computing _randomized_ processes, with one example being playing Poker over the net without having to trust any server for correct shuffling of cards or not revealing the information.
-
-
-
-
-
-::: { .recap }
-* We can formally define the notion of security of an encryption scheme.
-
-* _Perfect secrecy_ ensures that an adversary does not learn _anything_ about the plaintext from the ciphertext, regardless of their computational powers.
-
-* The one-time pad is a perfectly secret encryption with the length of the key equaling the length of the message. No perfectly secret encryption can have key shorter than the message.
-
-* _Computational secrecy_ can be as good as perfect secrecy since it ensures that the advantage that computationally bounded adversaries gain from observing the ciphertext is exponentially small. If the optimal PRG conjecture is true then there exists a computationally secret encryption scheme with messages that can be (almost) _exponentially bigger_ than the key.
-
-* There are many cryptographic tools that go well beyond private key encryption. These include _public key encryption_, _digital signatures_ and _hash functions_, as well as more "magical" tools such as _multiparty secure computation_, _fully homomorphic encryption_, _zero knowledge proofs_, and many others.
-:::
-
-## Exercises
-
-
-
+## 习题
 
 ## Bibliographical notes
 
